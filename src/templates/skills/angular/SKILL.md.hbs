@@ -1,0 +1,495 @@
+# Angular Development Skill
+
+## Overview
+This skill provides context and best practices for working with Angular applications.
+
+## Detected Configuration
+{{#if version}}
+- Version: {{version}}
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **Component Architecture**: Use smart/dumb component pattern
+2. **Dependency Injection**: Leverage Angular's DI system
+3. **RxJS**: Use reactive programming with observables
+4. **Lazy Loading**: Load modules on demand for better performance
+5. **Standalone Components**: Use standalone components (Angular 14+)
+6. **Signals**: Use Angular Signals for reactive state (Angular 16+)
+
+## Project Structure
+
+```
+src/
+  app/
+    core/               # Singleton services, guards, interceptors
+      services/
+      guards/
+      interceptors/
+    shared/             # Reusable components, directives, pipes
+      components/
+      directives/
+      pipes/
+    features/           # Feature modules
+      user/
+        components/
+        services/
+        user.module.ts
+        user-routing.module.ts
+    app.component.ts
+    app.module.ts
+    app-routing.module.ts
+  assets/
+  environments/
+```
+
+## Common Patterns
+
+### Standalone Component (Angular 14+)
+```typescript
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
+@Component({
+  selector: 'app-user-profile',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  templateUrl: './user-profile.component.html',
+  styleUrls: ['./user-profile.component.scss']
+})
+export class UserProfileComponent {
+  user = { name: 'John', email: 'john@example.com' };
+}
+```
+
+### Service with Dependency Injection
+```typescript
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'  // Singleton service
+})
+export class UserService {
+  private apiUrl = 'https://api.example.com/users';
+
+  constructor(private http: HttpClient) {}
+
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiUrl);
+  }
+
+  getUser(id: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  }
+
+  createUser(user: User): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user);
+  }
+}
+```
+
+### Using Signals (Angular 16+)
+```typescript
+import { Component, signal, computed } from '@angular/core';
+
+@Component({
+  selector: 'app-counter',
+  standalone: true,
+  template: `
+    <div>
+      <p>Count: {{ count() }}</p>
+      <p>Double: {{ doubleCount() }}</p>
+      <button (click)="increment()">Increment</button>
+    </div>
+  `
+})
+export class CounterComponent {
+  count = signal(0);
+  doubleCount = computed(() => this.count() * 2);
+
+  increment() {
+    this.count.update(value => value + 1);
+  }
+}
+```
+
+### Routing with Lazy Loading
+```typescript
+// app-routing.module.ts
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+
+const routes: Routes = [
+  { path: '', redirectTo: '/home', pathMatch: 'full' },
+  {
+    path: 'home',
+    loadComponent: () => import('./home/home.component')
+      .then(m => m.HomeComponent)
+  },
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.module')
+      .then(m => m.AdminModule),
+    canActivate: [AuthGuard]
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+```
+
+### Reactive Forms
+```typescript
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+@Component({
+  selector: 'app-user-form',
+  templateUrl: './user-form.component.html'
+})
+export class UserFormComponent implements OnInit {
+  userForm!: FormGroup;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit() {
+    this.userForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
+      age: ['', [Validators.required, Validators.min(18)]]
+    });
+  }
+
+  onSubmit() {
+    if (this.userForm.valid) {
+      console.log(this.userForm.value);
+    }
+  }
+}
+```
+
+### HTTP Interceptor
+```typescript
+import { Injectable } from '@angular/core';
+import {
+  HttpInterceptor,
+  HttpRequest,
+  HttpHandler
+} from '@angular/common/http';
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler) {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+      const cloned = req.clone({
+        headers: req.headers.set('Authorization', `Bearer ${token}`)
+      });
+      return next.handle(cloned);
+    }
+
+    return next.handle(req);
+  }
+}
+```
+
+### Route Guard
+```typescript
+import { Injectable } from '@angular/core';
+import {
+  CanActivate,
+  Router,
+  ActivatedRouteSnapshot
+} from '@angular/router';
+import { AuthService } from './auth.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate {
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  canActivate(route: ActivatedRouteSnapshot): boolean {
+    if (this.authService.isAuthenticated()) {
+      return true;
+    }
+
+    this.router.navigate(['/login']);
+    return false;
+  }
+}
+```
+
+## Angular CLI Commands
+
+```bash
+# Create new application
+ng new my-app
+
+# Generate components
+ng generate component user-profile
+ng g c user-profile --standalone   # Standalone component
+
+# Generate service
+ng generate service user
+ng g s user
+
+# Generate module
+ng generate module admin --routing
+
+# Generate directive
+ng generate directive highlight
+
+# Generate pipe
+ng generate pipe currency
+
+# Generate guard
+ng generate guard auth
+
+# Serve application
+ng serve
+ng serve --open         # Open in browser
+ng serve --port 4300    # Custom port
+
+# Build for production
+ng build
+ng build --configuration production
+
+# Run tests
+ng test                 # Unit tests with Karma
+ng test --code-coverage # With coverage
+ng e2e                  # E2E tests
+
+# Lint
+ng lint
+
+# Update Angular
+ng update
+ng update @angular/core @angular/cli
+```
+
+## State Management
+
+### Using Services (Simple State)
+```typescript
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CartService {
+  private itemsSubject = new BehaviorSubject<CartItem[]>([]);
+  items$: Observable<CartItem[]> = this.itemsSubject.asObservable();
+
+  addItem(item: CartItem) {
+    const current = this.itemsSubject.value;
+    this.itemsSubject.next([...current, item]);
+  }
+
+  removeItem(id: string) {
+    const current = this.itemsSubject.value;
+    this.itemsSubject.next(current.filter(item => item.id !== id));
+  }
+
+  clearCart() {
+    this.itemsSubject.next([]);
+  }
+}
+```
+
+### Using NgRx (Complex State)
+```typescript
+// actions
+import { createAction, props } from '@ngrx/store';
+
+export const loadUsers = createAction('[User] Load Users');
+export const loadUsersSuccess = createAction(
+  '[User] Load Users Success',
+  props<{ users: User[] }>()
+);
+
+// reducer
+import { createReducer, on } from '@ngrx/store';
+
+export interface UserState {
+  users: User[];
+  loading: boolean;
+}
+
+const initialState: UserState = {
+  users: [],
+  loading: false
+};
+
+export const userReducer = createReducer(
+  initialState,
+  on(loadUsers, state => ({ ...state, loading: true })),
+  on(loadUsersSuccess, (state, { users }) => ({
+    ...state,
+    users,
+    loading: false
+  }))
+);
+
+// selector
+import { createSelector } from '@ngrx/store';
+
+export const selectUserState = (state: AppState) => state.users;
+export const selectAllUsers = createSelector(
+  selectUserState,
+  (state: UserState) => state.users
+);
+```
+
+## Testing
+
+### Component Testing
+```typescript
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { UserComponent } from './user.component';
+
+describe('UserComponent', () => {
+  let component: UserComponent;
+  let fixture: ComponentFixture<UserComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ UserComponent ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should display user name', () => {
+    component.user = { name: 'John', email: 'john@example.com' };
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement;
+    expect(compiled.querySelector('h1').textContent).toContain('John');
+  });
+});
+```
+
+### Service Testing
+```typescript
+import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { UserService } from './user.service';
+
+describe('UserService', () => {
+  let service: UserService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [UserService]
+    });
+    service = TestBed.inject(UserService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('should fetch users', () => {
+    const mockUsers = [{ id: '1', name: 'John' }];
+
+    service.getUsers().subscribe(users => {
+      expect(users.length).toBe(1);
+      expect(users).toEqual(mockUsers);
+    });
+
+    const req = httpMock.expectOne('https://api.example.com/users');
+    expect(req.request.method).toBe('GET');
+    req.flush(mockUsers);
+  });
+});
+```
+
+## Performance Optimization
+
+```typescript
+// OnPush Change Detection
+@Component({
+  selector: 'app-user-list',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `...`
+})
+export class UserListComponent { }
+
+// TrackBy for *ngFor
+@Component({
+  template: `
+    <div *ngFor="let user of users; trackBy: trackByUserId">
+      {{ user.name }}
+    </div>
+  `
+})
+export class UserListComponent {
+  trackByUserId(index: number, user: User): string {
+    return user.id;
+  }
+}
+
+// Async Pipe (auto-unsubscribe)
+@Component({
+  template: `
+    <div *ngIf="users$ | async as users">
+      <div *ngFor="let user of users">{{ user.name }}</div>
+    </div>
+  `
+})
+export class UserListComponent {
+  users$ = this.userService.getUsers();
+
+  constructor(private userService: UserService) {}
+}
+```
+
+## Common Dependencies
+
+```json
+{
+  "dependencies": {
+    "@angular/common": "^17.0.0",
+    "@angular/core": "^17.0.0",
+    "@angular/forms": "^17.0.0",
+    "@angular/router": "^17.0.0",
+    "@angular/platform-browser": "^17.0.0",
+    "@angular/platform-browser-dynamic": "^17.0.0",
+    "@ngrx/store": "^17.0.0",          // State management
+    "@ngrx/effects": "^17.0.0",        // Side effects
+    "rxjs": "^7.8.0",                  // Reactive programming
+    "tslib": "^2.6.0",
+    "zone.js": "^0.14.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "^17.0.0",
+    "@angular/compiler-cli": "^17.0.0",
+    "typescript": "^5.2.0",
+    "karma": "^6.4.0",                 // Test runner
+    "jasmine-core": "^5.0.0"           // Testing framework
+  }
+}
+```

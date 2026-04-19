@@ -1,0 +1,115 @@
+# Next.js Development Skill
+
+## Overview
+This skill provides context and best practices for working with Next.js applications.
+
+## Detected Configuration
+{{#if version}}
+- Version: {{version}}
+{{/if}}
+{{#if appDir}}
+- App Router: Yes (Next.js 13+)
+{{else}}
+- Pages Router: Yes
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **File-based Routing**: Leverage Next.js automatic routing
+2. **Server Components**: Use React Server Components (App Router)
+3. **Data Fetching**: Use appropriate data fetching methods
+4. **Image Optimization**: Use next/image for optimized images
+5. **Metadata**: Implement proper SEO with metadata API
+
+## Common Patterns
+
+{{#if appDir}}
+### App Router Structure (Next.js 13+)
+```
+app/
+  layout.tsx      # Root layout
+  page.tsx        # Home page
+  about/
+    page.tsx      # About page
+  api/
+    route.ts      # API route
+```
+
+### Server Component
+```typescript
+async function Page() {
+  const data = await fetch('https://api.example.com/data');
+  return <div>{JSON.stringify(data)}</div>;
+}
+```
+{{else}}
+### Pages Router Structure
+```
+pages/
+  index.tsx       # Home page
+  about.tsx       # About page
+  api/
+    hello.ts      # API route
+```
+
+### getServerSideProps
+```typescript
+export async function getServerSideProps() {
+  const data = await fetch('https://api.example.com/data');
+  return { props: { data } };
+}
+```
+{{/if}}
+
+### API Routes
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ message: 'Hello World' });
+}
+```
+
+### Image Optimization
+```typescript
+import Image from 'next/image';
+
+<Image
+  src="/photo.jpg"
+  width={500}
+  height={300}
+  alt="Description"
+/>
+```
+
+## Testing
+
+```bash
+npm run test              # Run tests
+npm run test:watch        # Watch mode
+npm run test:e2e          # E2E tests with Playwright/Cypress
+```
+
+## Common Commands
+
+```bash
+npm run dev          # Start development server (port 3000)
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
+```
+
+## Data Fetching
+
+{{#if appDir}}
+- **Server Components**: Fetch directly in components
+- **Client Components**: Use SWR or React Query
+- **Server Actions**: Handle form submissions
+{{else}}
+- **getStaticProps**: Static generation
+- **getServerSideProps**: Server-side rendering
+- **getStaticPaths**: Dynamic routes with SSG
+{{/if}}

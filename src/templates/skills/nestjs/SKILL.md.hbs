@@ -1,0 +1,74 @@
+# NestJS Development Skill
+
+## Overview
+This skill provides context and best practices for working with NestJS applications.
+
+## Detected Configuration
+{{#if version}}
+- Version: {{version}}
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **Module Organization**: Group related features into modules
+2. **Dependency Injection**: Use constructor injection for services
+3. **DTOs**: Create Data Transfer Objects for validation
+4. **Guards**: Implement authentication and authorization
+5. **Interceptors**: Handle cross-cutting concerns
+
+## Common Patterns
+
+### Creating a Module
+```bash
+nest generate module users
+nest generate controller users
+nest generate service users
+```
+
+### Dependency Injection
+```typescript
+@Injectable()
+export class UsersService {
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+  ) {}
+}
+```
+
+### Request Validation with DTOs
+```typescript
+import { IsString, IsEmail } from 'class-validator';
+
+export class CreateUserDto {
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+}
+```
+
+## Testing
+
+Run tests with:
+```bash
+npm run test              # Unit tests
+npm run test:watch        # Watch mode
+npm run test:cov          # Coverage
+npm run test:e2e          # E2E tests
+```
+
+## Common Commands
+
+```bash
+nest new project-name          # Create new project
+nest generate module users     # Generate module
+nest generate controller users # Generate controller
+nest generate service users    # Generate service
+nest build                     # Build project
+nest start --watch            # Start in watch mode
+```

@@ -1,0 +1,94 @@
+# React Development Skill
+
+## Overview
+This skill provides context and best practices for working with React applications.
+
+## Detected Configuration
+{{#if version}}
+- Version: {{version}}
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **Component Organization**: Keep components small and focused
+2. **State Management**: Use hooks (useState, useReducer) or external libraries (Redux, Zustand)
+3. **Performance**: Memo, useMemo, useCallback for optimization
+4. **TypeScript**: Prefer TypeScript for type safety
+5. **Testing**: Jest + React Testing Library
+
+## Common Patterns
+
+### Functional Component
+```typescript
+import { useState } from 'react';
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+}
+```
+
+### Custom Hooks
+```typescript
+function useLocalStorage(key: string, initialValue: any) {
+  const [storedValue, setStoredValue] = useState(() => {
+    const item = window.localStorage.getItem(key);
+    return item ? JSON.parse(item) : initialValue;
+  });
+
+  const setValue = (value: any) => {
+    setStoredValue(value);
+    window.localStorage.setItem(key, JSON.stringify(value));
+  };
+
+  return [storedValue, setValue];
+}
+```
+
+### Context API
+```typescript
+const ThemeContext = createContext();
+
+function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+```
+
+## Testing
+
+```bash
+npm test                  # Run tests
+npm run test:watch        # Watch mode
+npm run test:coverage     # Coverage report
+```
+
+## Common Commands
+
+```bash
+npm start                 # Start development server
+npm run build             # Build for production
+npm run lint              # Run ESLint
+npm run format            # Run Prettier
+```
+
+## Popular Libraries
+
+- **Routing**: React Router
+- **State Management**: Redux, Zustand, Jotai, Recoil
+- **Forms**: React Hook Form, Formik
+- **UI**: Material-UI, Chakra UI, Ant Design
+- **Styling**: Tailwind CSS, styled-components, CSS Modules

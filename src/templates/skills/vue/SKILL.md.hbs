@@ -1,0 +1,360 @@
+# Vue.js Development Skill
+
+## Overview
+This skill provides context and best practices for working with Vue.js applications.
+
+## Detected Configuration
+{{#if version}}
+- Version: {{version}}
+{{/if}}
+{{#if vue3}}
+- Using Vue 3 (Composition API available)
+{{else}}
+- Using Vue 2 (Options API)
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **Composition API**: Use Composition API for better code organization (Vue 3)
+2. **Single File Components**: Organize code in .vue files
+3. **Reactivity**: Understand ref() vs reactive()
+4. **Props & Emits**: Define props and emits explicitly
+5. **Computed Properties**: Use for derived state
+6. **Pinia**: Modern state management for Vue 3
+
+## Common Patterns
+
+{{#if vue3}}
+### Composition API (Vue 3)
+```vue
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+
+const count = ref(0);
+const doubleCount = computed(() => count.value * 2);
+
+const increment = () => {
+  count.value++;
+};
+
+onMounted(() => {
+  console.log('Component mounted');
+});
+</script>
+
+<template>
+  <div>
+    <p>Count: {{ count }}</p>
+    <p>Double: {{ doubleCount }}</p>
+    <button @click="increment">Increment</button>
+  </div>
+</template>
+
+<style scoped>
+button {
+  padding: 8px 16px;
+}
+</style>
+```
+{{/if}}
+
+### Component with Props & Emits
+```vue
+<script setup>
+import { defineProps, defineEmits } from 'vue';
+
+const props = defineProps({
+  title: {
+    type: String,
+    required: true
+  },
+  count: {
+    type: Number,
+    default: 0
+  }
+});
+
+const emit = defineEmits(['update', 'delete']);
+
+const handleUpdate = () => {
+  emit('update', props.count + 1);
+};
+</script>
+
+<template>
+  <div>
+    <h2>{{ title }}</h2>
+    <p>{{ count }}</p>
+    <button @click="handleUpdate">Update</button>
+  </div>
+</template>
+```
+
+### Composable (Custom Hook)
+```js
+// useCounter.js
+import { ref, computed } from 'vue';
+
+export function useCounter(initialValue = 0) {
+  const count = ref(initialValue);
+  const doubleCount = computed(() => count.value * 2);
+
+  const increment = () => count.value++;
+  const decrement = () => count.value--;
+  const reset = () => count.value = initialValue;
+
+  return {
+    count,
+    doubleCount,
+    increment,
+    decrement,
+    reset
+  };
+}
+
+// Usage in component
+import { useCounter } from './useCounter';
+
+const { count, increment } = useCounter(10);
+```
+
+### Vue Router
+```js
+import { createRouter, createWebHistory } from 'vue-router';
+import Home from './views/Home.vue';
+
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('./views/About.vue') // Lazy loading
+  },
+  {
+    path: '/user/:id',
+    name: 'User',
+    component: () => import('./views/User.vue')
+  }
+];
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+});
+
+export default router;
+```
+
+### Pinia Store (State Management)
+```js
+// stores/counter.js
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+
+export const useCounterStore = defineStore('counter', () => {
+  const count = ref(0);
+  const doubleCount = computed(() => count.value * 2);
+
+  function increment() {
+    count.value++;
+  }
+
+  return { count, doubleCount, increment };
+});
+
+// Usage in component
+<script setup>
+import { useCounterStore } from '@/stores/counter';
+
+const counter = useCounterStore();
+</script>
+
+<template>
+  <div>
+    <p>{{ counter.count }}</p>
+    <button @click="counter.increment">Increment</button>
+  </div>
+</template>
+```
+
+### Reactive Form
+```vue
+<script setup>
+import { reactive, computed } from 'vue';
+
+const form = reactive({
+  name: '',
+  email: '',
+  password: ''
+});
+
+const isValid = computed(() => {
+  return form.name.length > 0 &&
+         form.email.includes('@') &&
+         form.password.length >= 8;
+});
+
+const handleSubmit = () => {
+  if (isValid.value) {
+    console.log('Form submitted:', form);
+  }
+};
+</script>
+
+<template>
+  <form @submit.prevent="handleSubmit">
+    <input v-model="form.name" placeholder="Name" />
+    <input v-model="form.email" type="email" placeholder="Email" />
+    <input v-model="form.password" type="password" placeholder="Password" />
+    <button type="submit" :disabled="!isValid">Submit</button>
+  </form>
+</template>
+```
+
+### Watchers
+```js
+import { ref, watch, watchEffect } from 'vue';
+
+const count = ref(0);
+const name = ref('John');
+
+// Watch single source
+watch(count, (newValue, oldValue) => {
+  console.log(`Count changed from ${oldValue} to ${newValue}`);
+});
+
+// Watch multiple sources
+watch([count, name], ([newCount, newName], [oldCount, oldName]) => {
+  console.log('Multiple values changed');
+});
+
+// WatchEffect (runs immediately and tracks dependencies)
+watchEffect(() => {
+  console.log(`Count is ${count.value}`);
+});
+```
+
+## Vue CLI Commands
+
+```bash
+# Create new project
+npm create vue@latest my-app
+cd my-app
+npm install
+
+# Development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint
+npm run lint
+
+# Type check (if using TypeScript)
+npm run type-check
+```
+
+## Component Lifecycle
+
+```js
+import {
+  onBeforeMount,
+  onMounted,
+  onBeforeUpdate,
+  onUpdated,
+  onBeforeUnmount,
+  onUnmounted
+} from 'vue';
+
+onBeforeMount(() => {
+  console.log('Before mount');
+});
+
+onMounted(() => {
+  console.log('Mounted - DOM is ready');
+  // Fetch data, setup listeners
+});
+
+onBeforeUpdate(() => {
+  console.log('Before update');
+});
+
+onUpdated(() => {
+  console.log('Updated - DOM re-rendered');
+});
+
+onBeforeUnmount(() => {
+  console.log('Before unmount');
+  // Cleanup listeners
+});
+
+onUnmounted(() => {
+  console.log('Unmounted');
+});
+```
+
+## Testing
+
+```bash
+# Vitest (recommended for Vue 3)
+npm run test:unit
+
+# E2E with Playwright
+npm run test:e2e
+```
+
+### Component Test Example
+```js
+import { mount } from '@vue/test-utils';
+import { describe, it, expect } from 'vitest';
+import Counter from './Counter.vue';
+
+describe('Counter', () => {
+  it('increments count when button is clicked', async () => {
+    const wrapper = mount(Counter);
+
+    expect(wrapper.text()).toContain('Count: 0');
+
+    await wrapper.find('button').trigger('click');
+
+    expect(wrapper.text()).toContain('Count: 1');
+  });
+});
+```
+
+## Common Dependencies
+
+```json
+{
+  "dependencies": {
+    "vue": "^3.3.0",
+    "vue-router": "^4.2.0",
+    "pinia": "^2.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "@vue/test-utils": "^2.4.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
+```
+
+## UI Libraries
+
+- **Vuetify** - Material Design components
+- **Element Plus** - Desktop UI library
+- **Quasar** - Cross-platform framework
+- **Naive UI** - TypeScript-friendly components
+- **PrimeVue** - Rich component library

@@ -1,0 +1,87 @@
+# Express.js Development Skill
+
+## Overview
+This skill provides context and best practices for working with Express.js applications.
+
+## Detected Configuration
+{{#if version}}
+- Version: {{version}}
+{{/if}}
+{{#if typescript}}
+- TypeScript: Yes
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **Middleware Organization**: Use middleware for cross-cutting concerns
+2. **Error Handling**: Centralize error handling with middleware
+3. **Route Organization**: Group routes by feature or resource
+4. **Validation**: Validate request data before processing
+5. **Security**: Use helmet, cors, and rate limiting
+
+## Common Patterns
+
+### Basic Server Setup
+```javascript
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+
+const app = express();
+
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});
+```
+
+### Route Handlers
+```javascript
+app.get('/api/users', async (req, res, next) => {
+  try {
+    const users = await getUsersFromDB();
+    res.json(users);
+  } catch (error) {
+    next(error);
+  }
+});
+```
+
+### Error Handling Middleware
+```javascript
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error'
+  });
+});
+```
+
+## Testing
+
+Common testing libraries:
+- **Jest**: Unit testing framework
+- **Supertest**: HTTP assertions
+- **Mocha/Chai**: Alternative testing setup
+
+```bash
+npm test                  # Run tests
+npm run test:watch        # Watch mode
+npm run test:coverage     # Coverage report
+```
+
+## Common Middleware
+
+- `body-parser`: Parse request bodies
+- `cors`: Enable CORS
+- `morgan`: HTTP request logger
+- `helmet`: Security headers
+- `express-validator`: Request validation
+- `compression`: Response compression

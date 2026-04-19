@@ -1,0 +1,43 @@
+# Source files (don't publish TypeScript source)
+src/
+tests/
+*.test.ts
+*.spec.ts
+
+# Development files
+.gitignore
+.eslintrc.*
+.prettierrc
+tsconfig.json
+vitest.config.ts
+claude.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# Environment
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude files
+.claude/
+
+# Temp
+*.tmp
+.cache/

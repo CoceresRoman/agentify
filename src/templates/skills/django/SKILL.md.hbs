@@ -1,0 +1,105 @@
+# Django Development Skill
+
+## Overview
+This skill provides context and best practices for working with Django applications.
+
+## Detected Configuration
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **Settings**: Use environment variables for configuration
+2. **Models**: Keep models clean, use managers for queries
+3. **Views**: Use class-based views for reusability
+4. **Templates**: Use template inheritance
+5. **Security**: CSRF protection, SQL injection prevention
+
+## Common Patterns
+
+### Model Definition
+```python
+from django.db import models
+
+class Article(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    published_at = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-published_at']
+
+    def __str__(self):
+        return self.title
+```
+
+### Class-based View
+```python
+from django.views.generic import ListView, DetailView
+
+class ArticleListView(ListView):
+    model = Article
+    template_name = 'articles/list.html'
+    context_object_name = 'articles'
+    paginate_by = 10
+
+class ArticleDetailView(DetailView):
+    model = Article
+    template_name = 'articles/detail.html'
+```
+
+### Django REST Framework
+```python
+from rest_framework import viewsets, serializers
+
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = ['id', 'title', 'content', 'published_at']
+
+class ArticleViewSet(viewsets.ModelViewSet):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+```
+
+## Common Commands
+
+```bash
+# Project setup
+python manage.py startproject myproject
+python manage.py startapp myapp
+
+# Database
+python manage.py makemigrations  # Create migrations
+python manage.py migrate         # Apply migrations
+
+# Development
+python manage.py runserver       # Start dev server
+python manage.py shell          # Django shell
+
+# Admin
+python manage.py createsuperuser # Create admin user
+
+# Testing
+python manage.py test           # Run tests
+```
+
+## Project Structure
+
+```
+myproject/
+  manage.py
+  myproject/
+    __init__.py
+    settings.py
+    urls.py
+    wsgi.py
+  myapp/
+    models.py
+    views.py
+    urls.py
+    templates/
+    static/
+```

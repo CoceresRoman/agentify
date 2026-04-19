@@ -1,0 +1,391 @@
+# Flask Development Skill
+
+## Overview
+This skill provides context and best practices for working with Flask applications.
+
+## Detected Configuration
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Best Practices
+
+1. **Application Factory**: Use the application factory pattern
+2. **Blueprints**: Organize routes with blueprints
+3. **Environment Variables**: Use python-dotenv for configuration
+4. **Error Handling**: Custom error handlers for better UX
+5. **Database**: Use Flask-SQLAlchemy for ORM
+6. **Migrations**: Use Flask-Migrate for database migrations
+
+## Project Structure
+
+```
+my-flask-app/
+├── app/
+│   ├── __init__.py          # Application factory
+│   ├── models/
+│   │   └── user.py
+│   ├── routes/
+│   │   ├── auth.py          # Blueprint
+│   │   └── api.py
+│   ├── templates/
+│   └── static/
+├── migrations/              # Database migrations
+├── tests/
+├── config.py
+├── requirements.txt
+└── run.py
+```
+
+## Common Patterns
+
+### Application Factory Pattern
+```python
+# app/__init__.py
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+db = SQLAlchemy()
+migrate = Migrate()
+
+def create_app(config_name='default'):
+    app = Flask(__name__)
+    app.config.from_object(f'config.{config_name}')
+
+    # Initialize extensions
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    # Register blueprints
+    from app.routes.auth import auth_bp
+    from app.routes.api import api_bp
+
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(api_bp, url_prefix='/api')
+
+    return app
+```
+
+### Blueprint
+```python
+# app/routes/auth.py
+from flask import Blueprint, request, jsonify
+from app.models.user import User
+from app import db
+
+auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+
+    user = User(
+        username=data['username'],
+        email=data['email']
+    )
+    user.set_password(data['password'])
+
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify({'message': 'User created'}), 201
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+
+    if user and user.check_password(data['password']):
+        # Generate token
+        return jsonify({'token': 'jwt-token'})
+
+    return jsonify({'error': 'Invalid credentials'}), 401
+```
+
+### SQLAlchemy Model
+```python
+# app/models/user.py
+from app import db
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+
+class User(db.Model):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'created_at': self.created_at.isoformat()
+        }
+```
+
+### RESTful API
+```python
+from flask import Blueprint, request, jsonify
+from app.models.user import User
+from app import db
+
+api_bp = Blueprint('api', __name__)
+
+@api_bp.route('/users', methods=['GET'])
+def get_users():
+    users = User.query.all()
+    return jsonify([user.to_dict() for user in users])
+
+@api_bp.route('/users/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict())
+
+@api_bp.route('/users', methods=['POST'])
+def create_user():
+    data = request.get_json()
+    user = User(**data)
+    db.session.add(user)
+    db.session.commit()
+    return jsonify(user.to_dict()), 201
+
+@api_bp.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    user = User.query.get_or_404(user_id)
+    data = request.get_json()
+
+    for key, value in data.items():
+        setattr(user, key, value)
+
+    db.session.commit()
+    return jsonify(user.to_dict())
+
+@api_bp.route('/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return '', 204
+```
+
+### Error Handling
+```python
+from flask import jsonify
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return jsonify({'error': 'Internal server error'}), 500
+
+@app.errorhandler(ValidationError)
+def validation_error(error):
+    return jsonify({'error': str(error)}), 400
+```
+
+### Request Validation
+```python
+from flask import request
+from marshmallow import Schema, fields, ValidationError
+
+class UserSchema(Schema):
+    username = fields.Str(required=True)
+    email = fields.Email(required=True)
+    password = fields.Str(required=True, load_only=True)
+
+user_schema = UserSchema()
+
+@api_bp.route('/users', methods=['POST'])
+def create_user():
+    try:
+        data = user_schema.load(request.get_json())
+    except ValidationError as err:
+        return jsonify(err.messages), 400
+
+    user = User(**data)
+    db.session.add(user)
+    db.session.commit()
+
+    return jsonify(user_schema.dump(user)), 201
+```
+
+### Configuration
+```python
+# config.py
+import os
+from datetime import timedelta
+
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///app.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+class DevelopmentConfig(Config):
+    DEBUG = True
+
+class ProductionConfig(Config):
+    DEBUG = False
+
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig,
+    'default': DevelopmentConfig
+}
+```
+
+### JWT Authentication
+```python
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+
+jwt = JWTManager(app)
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.query.filter_by(email=data['email']).first()
+
+    if user and user.check_password(data['password']):
+        access_token = create_access_token(identity=user.id)
+        return jsonify(access_token=access_token)
+
+    return jsonify({'error': 'Invalid credentials'}), 401
+
+@api_bp.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    return jsonify(user.to_dict())
+```
+
+## Common Commands
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run development server
+flask run
+flask run --debug  # Enable debug mode
+
+# Database migrations
+flask db init              # Initialize migrations
+flask db migrate -m "msg"  # Create migration
+flask db upgrade           # Apply migrations
+flask db downgrade         # Rollback
+
+# Create database tables
+flask shell
+>>> from app import db
+>>> db.create_all()
+
+# Run tests
+pytest
+pytest --cov=app  # With coverage
+```
+
+## Testing
+
+```python
+import pytest
+from app import create_app, db
+from app.models.user import User
+
+@pytest.fixture
+def app():
+    app = create_app('testing')
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.drop_all()
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
+
+def test_register(client):
+    response = client.post('/auth/register', json={
+        'username': 'testuser',
+        'email': 'test@example.com',
+        'password': 'password123'
+    })
+
+    assert response.status_code == 201
+    assert 'User created' in response.get_json()['message']
+
+def test_login(client):
+    # Create user first
+    user = User(username='test', email='test@example.com')
+    user.set_password('password')
+    db.session.add(user)
+    db.session.commit()
+
+    response = client.post('/auth/login', json={
+        'email': 'test@example.com',
+        'password': 'password'
+    })
+
+    assert response.status_code == 200
+    assert 'token' in response.get_json()
+```
+
+## Common Extensions
+
+```txt
+# requirements.txt
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Migrate==4.0.5
+Flask-JWT-Extended==4.5.3
+Flask-CORS==4.0.0
+Flask-Mail==0.9.1
+python-dotenv==1.0.0
+marshmallow==3.20.1
+gunicorn==21.2.0        # Production server
+psycopg2-binary==2.9.9  # PostgreSQL
+```
+
+## Deployment (Gunicorn + Nginx)
+
+```bash
+# Install gunicorn
+pip install gunicorn
+
+# Run with gunicorn
+gunicorn -w 4 -b 0.0.0.0:8000 "app:create_app()"
+
+# Production config
+gunicorn -w 4 \
+  --bind unix:/tmp/flask.sock \
+  --access-logfile logs/access.log \
+  --error-logfile logs/error.log \
+  "app:create_app('production')"
+```
