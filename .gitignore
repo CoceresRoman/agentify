@@ -6,6 +6,7 @@ dist/
 
 # Claude files
 .claude/
+claude.md
 
 # Test coverage
 coverage/
