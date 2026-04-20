@@ -1,5 +1,20 @@
 export const CONFIDENCE_THRESHOLD = 0.7;
 
+export const AVAILABLE_SKILL_STACKS = [
+  'angular',
+  'django',
+  'docker',
+  'express',
+  'fastapi',
+  'flask',
+  'github-actions',
+  'nestjs',
+  'nextjs',
+  'react',
+  'spring-boot',
+  'vue',
+] as const;
+
 export const OUTPUT_DIR = '.claude';
 
 export const SUPPORTED_STACKS = {

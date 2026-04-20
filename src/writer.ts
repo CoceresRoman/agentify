@@ -5,7 +5,8 @@ import { FileSystemError } from './utils/errors.js';
 export async function writeFiles(
   files: { write: Record<string, string>; append: Record<string, string> },
   projectRoot: string,
-  outputDir: string
+  outputDir: string,
+  claudeMdAppendTarget?: string
 ): Promise<void> {
   const outputPath = join(projectRoot, outputDir);
 
@@ -25,7 +26,10 @@ export async function writeFiles(
   }
 
   for (const [relativePath, content] of Object.entries(files.append)) {
-    const fullPath = join(outputPath, relativePath);
+    const fullPath =
+      relativePath === 'CLAUDE.md' && claudeMdAppendTarget
+        ? claudeMdAppendTarget
+        : join(outputPath, relativePath);
     const dir = dirname(fullPath);
 
     try {

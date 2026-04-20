@@ -3,7 +3,7 @@ import { join } from 'path';
 import { logger } from '../utils/logger.js';
 import { runAllDetectors } from '../detectors/index.js';
 import { analyzeStack } from '../analyzer.js';
-import { promptForConfirmation, promptForStackEdit } from '../prompts.js';
+import { promptForConfirmation, promptForModify, promptForStackEdit } from '../prompts.js';
 import { generateFiles } from '../generator.js';
 import { writeFiles } from '../writer.js';
 import { fileExists } from '../utils/file-system.js';
@@ -49,10 +49,16 @@ export async function initCommand(options: InitOptions) {
     let confirmedStacks = analyzed.stacks;
 
     if (!options.yes && !options.noInteraction) {
-      const shouldEdit = await promptForConfirmation();
+      const shouldModify = await promptForModify();
 
-      if (shouldEdit) {
+      if (shouldModify) {
         confirmedStacks = await promptForStackEdit(analyzed);
+      } else {
+        const confirmed = await promptForConfirmation(confirmedStacks);
+        if (!confirmed) {
+          logger.warn('Cancelled.');
+          process.exit(0);
+        }
       }
     }
 
@@ -62,11 +68,17 @@ export async function initCommand(options: InitOptions) {
     }
 
     const outputDir = options.output || '.claude';
-    const claudeMdPath = join(projectRoot, outputDir, 'CLAUDE.md');
-    const claudeMdExists = await fileExists(claudeMdPath);
+
+    const rootClaudeMd = join(projectRoot, 'CLAUDE.md');
+    const dotClaudeClaudeMd = join(projectRoot, outputDir, 'CLAUDE.md');
+    const claudeMdExists =
+      (await fileExists(rootClaudeMd)) || (await fileExists(dotClaudeClaudeMd));
+    const claudeMdAppendTarget = (await fileExists(rootClaudeMd))
+      ? rootClaudeMd
+      : dotClaudeClaudeMd;
 
     const generatedFiles = await generateFiles(confirmedStacks, projectRoot, claudeMdExists);
-    await writeFiles(generatedFiles, projectRoot, outputDir);
+    await writeFiles(generatedFiles, projectRoot, outputDir, claudeMdAppendTarget);
 
     logger.success(
       `\n✓ Successfully generated Claude Code configuration in ${outputDir}/`
