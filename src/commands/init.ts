@@ -1,10 +1,12 @@
 import ora from 'ora';
+import { join } from 'path';
 import { logger } from '../utils/logger.js';
 import { runAllDetectors } from '../detectors/index.js';
 import { analyzeStack } from '../analyzer.js';
 import { promptForConfirmation, promptForStackEdit } from '../prompts.js';
 import { generateFiles } from '../generator.js';
 import { writeFiles } from '../writer.js';
+import { fileExists } from '../utils/file-system.js';
 
 type InitOptions = {
   yes?: boolean;
@@ -59,15 +61,21 @@ export async function initCommand(options: InitOptions) {
       process.exit(0);
     }
 
-    const generatedFiles = await generateFiles(confirmedStacks, projectRoot);
-
     const outputDir = options.output || '.claude';
+    const claudeMdPath = join(projectRoot, outputDir, 'CLAUDE.md');
+    const claudeMdExists = await fileExists(claudeMdPath);
+
+    const generatedFiles = await generateFiles(confirmedStacks, projectRoot, claudeMdExists);
     await writeFiles(generatedFiles, projectRoot, outputDir);
 
     logger.success(
       `\n✓ Successfully generated Claude Code configuration in ${outputDir}/`
     );
-    logger.info('  - CLAUDE.md');
+    if (claudeMdExists) {
+      logger.info('  - CLAUDE.md (updated: skills section appended)');
+    } else {
+      logger.info('  - CLAUDE.md');
+    }
     confirmedStacks.forEach((s) => {
       logger.info(`  - skills/${s.stack}/SKILL.md`);
     });

@@ -14,17 +14,26 @@ Handlebars.registerHelper('eq', function (a, b) {
 
 export async function generateFiles(
   stacks: DetectionResult[],
-  projectRoot: string
-): Promise<Record<string, string>> {
-  const files: Record<string, string> = {};
+  projectRoot: string,
+  claudeMdExists = false
+): Promise<{ write: Record<string, string>; append: Record<string, string> }> {
+  const write: Record<string, string> = {};
+  const append: Record<string, string> = {};
 
   try {
-    const claudeTemplate = await loadTemplate('claude-md/base.hbs');
-    files['CLAUDE.md'] = claudeTemplate({
+    const templateData = {
       stacks: stacks.map((s) => s.stack),
       projectRoot,
       timestamp: new Date().toISOString(),
-    });
+    };
+
+    if (claudeMdExists) {
+      const appendTemplate = await loadTemplate('claude-md/skills-append.hbs');
+      append['CLAUDE.md'] = appendTemplate(templateData);
+    } else {
+      const claudeTemplate = await loadTemplate('claude-md/base.hbs');
+      write['CLAUDE.md'] = claudeTemplate(templateData);
+    }
   } catch (error) {
     throw new TemplateError(
       `Failed to generate CLAUDE.md: ${(error as Error).message}`,
@@ -37,7 +46,7 @@ export async function generateFiles(
       const skillTemplate = await loadTemplate(
         `skills/${stack.stack}/SKILL.md.hbs`
       );
-      files[`skills/${stack.stack}/SKILL.md`] = skillTemplate({
+      write[`skills/${stack.stack}/SKILL.md`] = skillTemplate({
         ...stack.metadata,
         evidence: stack.evidence,
       });
@@ -46,7 +55,7 @@ export async function generateFiles(
     }
   }
 
-  return files;
+  return { write, append };
 }
 
 async function loadTemplate(

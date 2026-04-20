@@ -1,0 +1,55 @@
+
+---
+
+## Agentify Skills
+
+> Configured by [agentify](https://github.com/coceresroman/agentify) on {{timestamp}}
+
+The following skills are available for this project. When working with these technologies, read the corresponding skill file for best practices, patterns, and common commands.
+
+| Stack | Skill File |
+|-------|-----------|
+{{#each stacks}}
+| **{{this}}** | `.claude/skills/{{this}}/SKILL.md` |
+{{/each}}
+
+### When to use each skill
+
+{{#each stacks}}
+{{#if (eq this "react")}}
+- **react**: Working with React components, hooks, state management, or UI rendering
+{{/if}}
+{{#if (eq this "nextjs")}}
+- **nextjs**: Working with pages, API routes, SSR/SSG, or Next.js config
+{{/if}}
+{{#if (eq this "nestjs")}}
+- **nestjs**: Working with modules, controllers, services, guards, or decorators
+{{/if}}
+{{#if (eq this "express")}}
+- **express**: Working with routes, middleware, controllers, or REST APIs
+{{/if}}
+{{#if (eq this "vue")}}
+- **vue**: Working with Vue components, Vuex/Pinia, or Vue Router
+{{/if}}
+{{#if (eq this "angular")}}
+- **angular**: Working with components, services, modules, or Angular CLI
+{{/if}}
+{{#if (eq this "django")}}
+- **django**: Working with models, views, serializers, or Django ORM
+{{/if}}
+{{#if (eq this "fastapi")}}
+- **fastapi**: Working with routes, schemas, dependencies, or async handlers
+{{/if}}
+{{#if (eq this "flask")}}
+- **flask**: Working with routes, blueprints, models, or Flask extensions
+{{/if}}
+{{#if (eq this "spring-boot")}}
+- **spring-boot**: Working with controllers, services, repositories, or Spring config
+{{/if}}
+{{#if (eq this "docker")}}
+- **docker**: Working with Dockerfiles, Compose files, or containerization
+{{/if}}
+{{#if (eq this "github-actions")}}
+- **github-actions**: Working with CI/CD workflows or GitHub Actions config
+{{/if}}
+{{/each}}

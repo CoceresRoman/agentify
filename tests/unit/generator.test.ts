@@ -3,7 +3,7 @@ import { generateFiles } from '../../src/generator.js';
 import { DetectionResult } from '../../src/types/index.js';
 
 describe('generator', () => {
-  it('should generate CLAUDE.md with stack context', async () => {
+  it('should generate CLAUDE.md with stack context when file does not exist', async () => {
     const stacks: DetectionResult[] = [
       {
         stack: 'nestjs',
@@ -13,11 +13,29 @@ describe('generator', () => {
       },
     ];
 
-    const files = await generateFiles(stacks, '/test/project');
+    const { write } = await generateFiles(stacks, '/test/project', false);
 
-    expect(files).toHaveProperty('CLAUDE.md');
-    expect(files['CLAUDE.md']).toContain('nestjs');
-    expect(files['CLAUDE.md']).toContain('Project Overview');
+    expect(write).toHaveProperty('CLAUDE.md');
+    expect(write['CLAUDE.md']).toContain('nestjs');
+    expect(write['CLAUDE.md']).toContain('Project Overview');
+  });
+
+  it('should append skills section when CLAUDE.md already exists', async () => {
+    const stacks: DetectionResult[] = [
+      {
+        stack: 'nestjs',
+        confidence: 0.9,
+        evidence: ['test'],
+        metadata: { version: '10.0.0' },
+      },
+    ];
+
+    const { write, append } = await generateFiles(stacks, '/test/project', true);
+
+    expect(write).not.toHaveProperty('CLAUDE.md');
+    expect(append).toHaveProperty('CLAUDE.md');
+    expect(append['CLAUDE.md']).toContain('nestjs');
+    expect(append['CLAUDE.md']).toContain('Agentify Skills');
   });
 
   it('should generate skill files for each stack', async () => {
@@ -26,10 +44,10 @@ describe('generator', () => {
       { stack: 'express', confidence: 0.8, evidence: ['test'] },
     ];
 
-    const files = await generateFiles(stacks, '/test/project');
+    const { write } = await generateFiles(stacks, '/test/project');
 
-    expect(files).toHaveProperty('skills/nestjs/SKILL.md');
-    expect(files).toHaveProperty('skills/express/SKILL.md');
+    expect(write).toHaveProperty('skills/nestjs/SKILL.md');
+    expect(write).toHaveProperty('skills/express/SKILL.md');
   });
 
   it('should include metadata in skill files', async () => {
@@ -42,10 +60,10 @@ describe('generator', () => {
       },
     ];
 
-    const files = await generateFiles(stacks, '/test/project');
+    const { write } = await generateFiles(stacks, '/test/project');
 
-    expect(files['skills/nextjs/SKILL.md']).toContain('14.0.0');
-    expect(files['skills/nextjs/SKILL.md']).toContain('Found Next.js');
+    expect(write['skills/nextjs/SKILL.md']).toContain('14.0.0');
+    expect(write['skills/nextjs/SKILL.md']).toContain('Found Next.js');
   });
 
   it('should handle multiple stacks in CLAUDE.md', async () => {
@@ -54,9 +72,9 @@ describe('generator', () => {
       { stack: 'nextjs', confidence: 0.8, evidence: ['test'] },
     ];
 
-    const files = await generateFiles(stacks, '/test/project');
+    const { write } = await generateFiles(stacks, '/test/project');
 
-    expect(files['CLAUDE.md']).toContain('nestjs');
-    expect(files['CLAUDE.md']).toContain('nextjs');
+    expect(write['CLAUDE.md']).toContain('nestjs');
+    expect(write['CLAUDE.md']).toContain('nextjs');
   });
 });

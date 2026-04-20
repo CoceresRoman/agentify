@@ -27,7 +27,7 @@ describe('agentify init (integration)', () => {
   it('should generate .claude/ directory with files for NestJS project', async () => {
     const detectionResults = await runAllDetectors(testProjectPath);
     const analyzed = await analyzeStack(detectionResults, testProjectPath);
-    const files = await generateFiles(analyzed.stacks, testProjectPath);
+    const files = await generateFiles(analyzed.stacks, testProjectPath, false);
     await writeFiles(files, testProjectPath, '.claude');
 
     const claudeMdPath = join(claudeDir, 'CLAUDE.md');
@@ -44,11 +44,30 @@ describe('agentify init (integration)', () => {
     expect(skillMd).toContain('NestJS Development Skill');
   });
 
+  it('should append skills section when CLAUDE.md already exists', async () => {
+    const claudeMdPath = join(claudeDir, 'CLAUDE.md');
+    const detectionResults = await runAllDetectors(testProjectPath);
+    const analyzed = await analyzeStack(detectionResults, testProjectPath);
+
+    // First run: create CLAUDE.md
+    const firstRun = await generateFiles(analyzed.stacks, testProjectPath, false);
+    await writeFiles(firstRun, testProjectPath, '.claude');
+
+    // Second run: append skills section
+    const secondRun = await generateFiles(analyzed.stacks, testProjectPath, true);
+    await writeFiles(secondRun, testProjectPath, '.claude');
+
+    const claudeMd = await readFile(claudeMdPath, 'utf-8');
+    expect(claudeMd).toContain('Project Overview');
+    expect(claudeMd).toContain('Agentify Skills');
+    expect(claudeMd).toContain('nestjs');
+  });
+
   it('should respect custom output directory', async () => {
     const customDir = join(testProjectPath, 'custom-output');
     const detectionResults = await runAllDetectors(testProjectPath);
     const analyzed = await analyzeStack(detectionResults, testProjectPath);
-    const files = await generateFiles(analyzed.stacks, testProjectPath);
+    const files = await generateFiles(analyzed.stacks, testProjectPath, false);
     await writeFiles(files, testProjectPath, 'custom-output');
 
     const claudeMdPath = join(customDir, 'CLAUDE.md');
