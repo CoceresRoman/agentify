@@ -1,6 +1,6 @@
 {
   "name": "@coceresroman/agentify",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "CLI tool to auto-detect project stacks and generate Claude Code configuration files",
   "type": "module",
   "main": "./dist/cli.js",
