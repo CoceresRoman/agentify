@@ -1,0 +1,108 @@
+# Java Development Skill
+
+## Detected Configuration
+{{#if javaVersion}}
+- Java version: {{javaVersion}}
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Project Structure
+
+```
+src/
+├── main/
+│   ├── java/com/example/
+│   │   ├── config/        # Configuration classes
+│   │   ├── controller/    # REST controllers
+│   │   ├── service/       # Business logic
+│   │   ├── repository/    # Data access
+│   │   ├── model/         # Domain models / entities
+│   │   └── exception/     # Custom exceptions
+│   └── resources/
+│       ├── application.properties
+│       └── application.yml
+└── test/
+    └── java/com/example/
+```
+
+## Best Practices
+
+1. **Naming**: Classes PascalCase, methods/variables camelCase, constants UPPER_SNAKE_CASE
+2. **Immutability**: Prefer `final` fields; use records for DTOs (Java 16+)
+3. **Null safety**: Use `Optional<T>` instead of returning null
+4. **Exceptions**: Checked exceptions for recoverable errors, unchecked for programming errors
+5. **Streams**: Use Stream API over imperative loops for collections
+6. **Generics**: Type parameters improve reuse and type safety
+7. **Interfaces**: Program to interfaces, not implementations
+
+## Common Patterns
+
+### Record (DTO/Value Object) — Java 16+
+```java
+public record UserDto(Long id, String name, String email) {}
+```
+
+### Optional usage
+```java
+public Optional<User> findById(Long id) {
+    return userRepository.findById(id);
+}
+
+// Caller
+findById(1L)
+    .map(User::getName)
+    .orElseThrow(() -> new NotFoundException("User not found"));
+```
+
+### Stream API
+```java
+List<String> activeNames = users.stream()
+    .filter(User::isActive)
+    .map(User::getName)
+    .sorted()
+    .collect(Collectors.toList());
+```
+
+### Builder pattern
+```java
+User user = User.builder()
+    .name("John")
+    .email("john@example.com")
+    .active(true)
+    .build();
+```
+
+## Testing
+
+```java
+@Test
+void shouldReturnUserById() {
+    // Arrange
+    User expected = new User(1L, "John");
+    when(repository.findById(1L)).thenReturn(Optional.of(expected));
+
+    // Act
+    User result = service.findById(1L);
+
+    // Assert
+    assertThat(result).isEqualTo(expected);
+}
+```
+
+## Common Commands
+
+```bash
+# Maven
+mvn clean install        # Build + test
+mvn test                 # Run tests
+mvn package              # Package JAR
+mvn dependency:tree      # Show dependency tree
+
+# Gradle
+./gradlew build          # Build + test
+./gradlew test           # Run tests
+./gradlew jar            # Package JAR
+./gradlew dependencies   # Show dependency tree
+```

@@ -1,0 +1,133 @@
+# Kotlin Development Skill
+
+## Detected Configuration
+{{#if version}}
+- Kotlin version: {{version}}
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Project Structure
+
+```
+src/
+├── main/
+│   ├── kotlin/com/example/
+│   │   ├── config/        # Configuration
+│   │   ├── controller/    # REST controllers
+│   │   ├── service/       # Business logic
+│   │   ├── repository/    # Data access
+│   │   ├── model/         # Domain models
+│   │   └── exception/     # Custom exceptions
+│   └── resources/
+│       └── application.yml
+└── test/
+    └── kotlin/com/example/
+```
+
+## Best Practices
+
+1. **Null safety**: Use `?` and `?.` — avoid `!!` except when null is truly impossible
+2. **Data classes**: Use for DTOs and value objects instead of verbose POJOs
+3. **Immutability**: Prefer `val` over `var`; `List` over `MutableList` in APIs
+4. **Extension functions**: Add behavior to existing types without inheritance
+5. **Coroutines**: Use `suspend` functions + `Flow` for async/reactive code
+6. **Sealed classes**: Model exhaustive state (Result, sealed hierarchies)
+7. **Scope functions**: `let`, `run`, `apply`, `also`, `with` — use purposefully
+
+## Common Patterns
+
+### Data class
+```kotlin
+data class UserDto(val id: Long, val name: String, val email: String)
+```
+
+### Null safety
+```kotlin
+val name: String? = user?.profile?.name
+val display = name ?: "Anonymous"
+
+// Safe call chain
+user?.address?.city?.let { city ->
+    println("City: $city")
+}
+```
+
+### Extension function
+```kotlin
+fun String.toSlug(): String =
+    lowercase().replace("\\s+".toRegex(), "-")
+
+// Usage
+"Hello World".toSlug() // "hello-world"
+```
+
+### Sealed class for result
+```kotlin
+sealed class Result<out T> {
+    data class Success<T>(val data: T) : Result<T>()
+    data class Error(val message: String) : Result<Nothing>()
+}
+
+when (val result = fetchUser(id)) {
+    is Result.Success -> render(result.data)
+    is Result.Error   -> showError(result.message)
+}
+```
+
+### Coroutine with Flow
+```kotlin
+fun getUsers(): Flow<List<User>> = flow {
+    emit(repository.findAll())
+}.flowOn(Dispatchers.IO)
+
+// Caller
+viewModelScope.launch {
+    getUsers().collect { users -> _state.value = users }
+}
+```
+
+### Scope functions
+```kotlin
+// apply — configure object, returns receiver
+val user = User().apply {
+    name = "John"
+    email = "john@example.com"
+}
+
+// let — transform nullable, returns lambda result
+user.email?.let { sendWelcome(it) }
+```
+
+## Testing
+
+```kotlin
+@Test
+fun `should return user by id`() {
+    // Arrange
+    val expected = User(1L, "John")
+    every { repository.findById(1L) } returns expected
+
+    // Act
+    val result = service.findById(1L)
+
+    // Assert
+    assertThat(result).isEqualTo(expected)
+}
+```
+
+## Common Commands
+
+```bash
+# Gradle (Kotlin DSL)
+./gradlew build          # Build + test
+./gradlew test           # Run tests
+./gradlew jar            # Package JAR
+./gradlew kotlinCompile  # Compile only
+
+# Maven (with Kotlin plugin)
+mvn clean install
+mvn test
+mvn package
+```

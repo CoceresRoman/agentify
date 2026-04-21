@@ -1,0 +1,98 @@
+# Maven Skill
+
+## Detected Configuration
+{{#if groupId}}
+- Group ID: {{groupId}}
+{{/if}}
+{{#if compilerVersion}}
+- Compiler source: {{compilerVersion}}
+{{/if}}
+{{#each evidence}}
+- {{this}}
+{{/each}}
+
+## Lifecycle
+
+Maven builds follow a fixed lifecycle. Each phase runs all previous phases:
+
+| Phase | Description |
+|-------|-------------|
+| `validate` | Validate project structure |
+| `compile` | Compile source code |
+| `test` | Run unit tests |
+| `package` | Package into JAR/WAR |
+| `verify` | Run integration tests |
+| `install` | Install to local repo (~/.m2) |
+| `deploy` | Deploy to remote repository |
+
+## Common Commands
+
+```bash
+mvn clean install          # Full build + test + install
+mvn clean package          # Build + package, skip install
+mvn test                   # Run tests only
+mvn test -Dtest=MyTest     # Run specific test class
+mvn package -DskipTests    # Package without running tests
+mvn dependency:tree        # Show full dependency tree
+mvn dependency:resolve     # Download all dependencies
+mvn versions:display-dependency-updates  # Check for updates
+mvn help:effective-pom     # Show resolved POM
+```
+
+## pom.xml Structure
+
+```xml
+<project>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.example</groupId>
+  <artifactId>my-app</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <java.version>17</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.1.2</version>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+```
+
+## Dependency Scopes
+
+| Scope | Classpath | Transitive | Use case |
+|-------|-----------|------------|----------|
+| `compile` (default) | all | yes | Regular dependencies |
+| `provided` | compile+test | no | Servlet API, Lombok |
+| `runtime` | runtime+test | yes | JDBC drivers |
+| `test` | test only | no | JUnit, Mockito |
+| `optional` | compile | no | Optional features |
+
+## Best Practices
+
+1. Use `<dependencyManagement>` in parent POMs to centralize versions
+2. Prefer `${project.version}` over hardcoded versions for internal modules
+3. Use `-SNAPSHOT` suffix only for development versions
+4. Pin plugin versions explicitly — Maven plugin resolution can be unpredictable
+5. Use Maven wrapper (`mvnw`) to lock Maven version per project
+6. Separate multi-module projects with a parent POM aggregator

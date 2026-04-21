@@ -1,90 +1,67 @@
 import { join } from 'path';
-import { fileExists, readFile } from '../utils/file-system.js';
-import { DetectionResult, DetectorFunction } from '../types/index.js';
+import { fileExists, readFile, findFiles } from '../utils/file-system.js';
+import { DetectorFunction } from '../types/index.js';
 
 export const detect: DetectorFunction = async (projectRoot: string) => {
-  const results: DetectionResult[] = [];
+  const evidence: string[] = [];
+  let confidence = 0;
+  const metadata: Record<string, unknown> = {};
 
-  // Maven (pom.xml)
   const pomPath = join(projectRoot, 'pom.xml');
-  if (await fileExists(pomPath)) {
-    const content = await readFile(pomPath);
-    if (content) {
-      const springBootResult = detectSpringBoot(content, 'maven');
-      if (springBootResult) {
-        results.push(springBootResult);
-      } else {
-        results.push({
-          stack: 'maven',
-          confidence: 0.8,
-          evidence: ['Found pom.xml (Maven project)'],
-        });
-      }
-    }
-  }
-
-  // Gradle (build.gradle or build.gradle.kts)
   const gradlePath = join(projectRoot, 'build.gradle');
   const gradleKtsPath = join(projectRoot, 'build.gradle.kts');
 
-  if ((await fileExists(gradlePath)) || (await fileExists(gradleKtsPath))) {
-    const content =
-      (await readFile(gradlePath)) || (await readFile(gradleKtsPath));
+  const hasPom = await fileExists(pomPath);
+  const hasGradle = await fileExists(gradlePath);
+  const hasGradleKts = await fileExists(gradleKtsPath);
+
+  if (!hasPom && !hasGradle && !hasGradleKts) return null;
+
+  if (hasPom) {
+    evidence.push('Found pom.xml');
+    confidence += 0.4;
+    const content = await readFile(pomPath);
     if (content) {
-      const springBootResult = detectSpringBoot(content, 'gradle');
-      if (springBootResult) {
-        results.push(springBootResult);
-      } else {
-        results.push({
-          stack: 'gradle',
-          confidence: 0.8,
-          evidence: ['Found build.gradle (Gradle project)'],
-        });
+      const versionMatch = content.match(/<java\.version>([\d.]+)<\/java\.version>/);
+      if (versionMatch) {
+        metadata.javaVersion = versionMatch[1];
+        evidence.push(`Java version ${versionMatch[1]}`);
+        confidence += 0.2;
       }
     }
   }
 
-  if (results.length === 0) return null;
-
-  results.sort((a, b) => b.confidence - a.confidence);
-  return results[0];
-};
-
-function detectSpringBoot(
-  content: string,
-  buildTool: 'maven' | 'gradle'
-): DetectionResult | null {
-  const evidence: string[] = [];
-  let confidence = 0;
-
-  if (content.includes('spring-boot')) {
-    evidence.push('Found Spring Boot dependencies');
-    confidence += 0.7;
+  if (hasGradle) {
+    evidence.push('Found build.gradle');
+    confidence += 0.4;
+    const content = await readFile(gradlePath);
+    if (content) {
+      const versionMatch = content.match(/sourceCompatibility\s*=\s*['"]?([^'"}\s]+)/);
+      if (versionMatch) {
+        metadata.javaVersion = versionMatch[1];
+        evidence.push(`Java source compatibility ${versionMatch[1]}`);
+        confidence += 0.1;
+      }
+    }
   }
 
-  if (
-    content.includes('org.springframework.boot') ||
-    content.includes('springframework.boot')
-  ) {
-    evidence.push('Found Spring Boot packages');
+  if (hasGradleKts) {
+    evidence.push('Found build.gradle.kts');
     confidence += 0.2;
   }
 
-  if (buildTool === 'maven' && content.includes('<groupId>org.springframework.boot</groupId>')) {
-    evidence.push('Found Spring Boot in Maven dependencies');
-    confidence += 0.1;
+  const javaFiles = await findFiles('src/**/*.java', projectRoot);
+  if (javaFiles.length > 0) {
+    evidence.push(`Found ${javaFiles.length} Java source file(s)`);
+    confidence += 0.3;
   }
 
-  if (buildTool === 'gradle' && content.includes('org.springframework.boot')) {
-    evidence.push('Found Spring Boot in Gradle dependencies');
-    confidence += 0.1;
-  }
-
-  if (confidence === 0) return null;
+  if (confidence < 0.7) return null;
 
   return {
-    stack: 'spring-boot',
+    stack: 'java',
     confidence: Math.min(confidence, 1.0),
     evidence,
+    metadata,
   };
-}
+};
