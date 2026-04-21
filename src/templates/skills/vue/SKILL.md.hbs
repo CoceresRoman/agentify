@@ -1,3 +1,8 @@
+---
+name: {{stackName}}
+description: Best practices, patterns and commands for {{stackName}} development
+---
+
 # Vue.js Development Skill
 
 ## Overview
@@ -47,8 +52,8 @@ onMounted(() => {
 
 <template>
   <div>
-    <p>Count: {{ count }}</p>
-    <p>Double: {{ doubleCount }}</p>
+    <p>Count: \{{ count }}</p>
+    <p>Double: \{{ doubleCount }}</p>
     <button @click="increment">Increment</button>
   </div>
 </template>
@@ -86,8 +91,8 @@ const handleUpdate = () => {
 
 <template>
   <div>
-    <h2>{{ title }}</h2>
-    <p>{{ count }}</p>
+    <h2>\{{ title }}</h2>
+    <p>\{{ count }}</p>
     <button @click="handleUpdate">Update</button>
   </div>
 </template>
@@ -178,7 +183,7 @@ const counter = useCounterStore();
 
 <template>
   <div>
-    <p>{{ counter.count }}</p>
+    <p>\{{ counter.count }}</p>
     <button @click="counter.increment">Increment</button>
   </div>
 </template>

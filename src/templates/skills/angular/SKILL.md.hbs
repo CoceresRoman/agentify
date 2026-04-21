@@ -1,15 +1,42 @@
-# Angular Development Skill
+---
+name: {{stackName}}
+description: Best practices, patterns and commands for {{stackName}} development
+---
 
-## Overview
-This skill provides context and best practices for working with Angular applications.
+# Angular Skill
 
-## Detected Configuration
+## Configuration
 {{#if version}}
 - Version: {{version}}
+{{/if}}
+{{#if structure.hasTypeScript}}
+- TypeScript: enabled
 {{/if}}
 {{#each evidence}}
 - {{this}}
 {{/each}}
+
+{{#if (hasItems structure.srcDirs)}}
+## Project Structure
+
+```
+{{#each structure.srcDirs}}
+{{this}}
+{{/each}}
+```
+{{/if}}
+
+{{#if structure.testDir}}
+Tests located in: `{{structure.testDir}}/`
+{{/if}}
+
+{{#if (hasItems structure.configFiles)}}
+## Detected Config Files
+
+{{#each structure.configFiles}}
+- `{{this}}`
+{{/each}}
+{{/if}}
 
 ## Best Practices
 
@@ -19,32 +46,6 @@ This skill provides context and best practices for working with Angular applicat
 4. **Lazy Loading**: Load modules on demand for better performance
 5. **Standalone Components**: Use standalone components (Angular 14+)
 6. **Signals**: Use Angular Signals for reactive state (Angular 16+)
-
-## Project Structure
-
-```
-src/
-  app/
-    core/               # Singleton services, guards, interceptors
-      services/
-      guards/
-      interceptors/
-    shared/             # Reusable components, directives, pipes
-      components/
-      directives/
-      pipes/
-    features/           # Feature modules
-      user/
-        components/
-        services/
-        user.module.ts
-        user-routing.module.ts
-    app.component.ts
-    app.module.ts
-    app-routing.module.ts
-  assets/
-  environments/
-```
 
 ## Common Patterns
 
@@ -103,8 +104,8 @@ import { Component, signal, computed } from '@angular/core';
   standalone: true,
   template: `
     <div>
-      <p>Count: {{ count() }}</p>
-      <p>Double: {{ doubleCount() }}</p>
+      <p>Count: \{{ count() }}</p>
+      <p>Double: \{{ doubleCount() }}</p>
       <button (click)="increment()">Increment</button>
     </div>
   `
@@ -233,10 +234,18 @@ export class AuthGuard implements CanActivate {
 }
 ```
 
-## Angular CLI Commands
+## Commands
+
+{{#if (hasItems structure.scripts)}}
+```bash
+{{#each structure.scripts}}
+npm run {{name}}{{#if command}}   # {{command}}{{/if}}
+{{/each}}
+```
+{{/if}}
 
 ```bash
-# Create new application
+# Angular CLI
 ng new my-app
 
 # Generate components
@@ -442,7 +451,7 @@ export class UserListComponent { }
 @Component({
   template: `
     <div *ngFor="let user of users; trackBy: trackByUserId">
-      {{ user.name }}
+      \{{ user.name }}
     </div>
   `
 })
@@ -456,7 +465,7 @@ export class UserListComponent {
 @Component({
   template: `
     <div *ngIf="users$ | async as users">
-      <div *ngFor="let user of users">{{ user.name }}</div>
+      <div *ngFor="let user of users">\{{ user.name }}</div>
     </div>
   `
 })

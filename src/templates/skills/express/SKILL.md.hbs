@@ -1,18 +1,47 @@
-# Express.js Development Skill
+---
+name: {{stackName}}
+description: Best practices, patterns and commands for {{stackName}} development
+---
 
-## Overview
-This skill provides context and best practices for working with Express.js applications.
+# Express Skill
 
-## Detected Configuration
+## Configuration
 {{#if version}}
 - Version: {{version}}
 {{/if}}
 {{#if typescript}}
 - TypeScript: Yes
 {{/if}}
+{{#if structure.hasTypeScript}}
+- TypeScript: enabled
+{{/if}}
 {{#each evidence}}
 - {{this}}
 {{/each}}
+
+{{#if (hasItems structure.srcDirs)}}
+## Project Structure
+
+```
+{{#each structure.srcDirs}}
+{{this}}
+{{/each}}
+```
+{{else}}
+## Project Structure
+
+```
+src/
+├── routes/        # Route handlers
+├── middleware/    # Custom middleware
+├── controllers/   # Business logic
+└── app.ts
+```
+{{/if}}
+
+{{#if structure.testDir}}
+Tests located in: `{{structure.testDir}}/`
+{{/if}}
 
 ## Best Practices
 
@@ -76,6 +105,22 @@ npm test                  # Run tests
 npm run test:watch        # Watch mode
 npm run test:coverage     # Coverage report
 ```
+
+## Commands
+
+{{#if (hasItems structure.scripts)}}
+```bash
+{{#each structure.scripts}}
+npm run {{name}}{{#if command}}   # {{command}}{{/if}}
+{{/each}}
+```
+{{else}}
+```bash
+npm start          # Start server
+npm run dev        # Development with watch
+npm test           # Run tests
+```
+{{/if}}
 
 ## Common Middleware
 

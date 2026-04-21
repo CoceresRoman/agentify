@@ -4,12 +4,17 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { DetectionResult } from './types/index.js';
 import { TemplateError } from './utils/errors.js';
+import { scanStructure } from './structure-scanner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 Handlebars.registerHelper('eq', function (a, b) {
   return a === b;
+});
+
+Handlebars.registerHelper('hasItems', function (arr) {
+  return Array.isArray(arr) && arr.length > 0;
 });
 
 export async function generateFiles(
@@ -46,12 +51,15 @@ export async function generateFiles(
       const skillTemplate = await loadTemplate(
         `skills/${stack.stack}/SKILL.md.hbs`
       );
+      const structure = await scanStructure(projectRoot, stack.stack);
       write[`skills/${stack.stack}/SKILL.md`] = skillTemplate({
         ...stack.metadata,
         evidence: stack.evidence,
+        structure,
+        stackName: stack.stack,
       });
     } catch (error) {
-      console.warn(`No template found for stack: ${stack.stack}`);
+      console.warn(`No template found for stack: ${stack.stack} — ${(error as Error).message}`);
     }
   }
 

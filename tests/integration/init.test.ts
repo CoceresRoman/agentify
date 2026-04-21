@@ -41,7 +41,7 @@ describe('agentify init (integration)', () => {
 
     expect(claudeMd).toContain('Project Overview');
     expect(claudeMd).toContain('nestjs');
-    expect(skillMd).toContain('NestJS Development Skill');
+    expect(skillMd).toContain('NestJS');
   });
 
   it('should append skills section when CLAUDE.md already exists', async () => {

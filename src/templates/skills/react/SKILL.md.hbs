@@ -1,15 +1,45 @@
-# React Development Skill
+---
+name: {{stackName}}
+description: Best practices, patterns and commands for {{stackName}} development
+---
 
-## Overview
-This skill provides context and best practices for working with React applications.
+# React Skill
 
-## Detected Configuration
+## Configuration
 {{#if version}}
 - Version: {{version}}
+{{/if}}
+{{#if structure.hasTypeScript}}
+- TypeScript: enabled
 {{/if}}
 {{#each evidence}}
 - {{this}}
 {{/each}}
+
+{{#if (hasItems structure.srcDirs)}}
+## Project Structure
+
+```
+{{#each structure.srcDirs}}
+{{this}}
+{{/each}}
+```
+{{else}}
+## Project Structure
+
+```
+src/
+├── components/    # Reusable UI components
+├── pages/         # Page-level components
+├── hooks/         # Custom hooks
+├── store/         # State management
+└── utils/
+```
+{{/if}}
+
+{{#if structure.testDir}}
+Tests located in: `{{structure.testDir}}/`
+{{/if}}
 
 ## Best Practices
 
@@ -27,7 +57,6 @@ import { useState } from 'react';
 
 function Counter() {
   const [count, setCount] = useState(0);
-
   return (
     <div>
       <p>Count: {count}</p>
@@ -37,58 +66,34 @@ function Counter() {
 }
 ```
 
-### Custom Hooks
+### Custom Hook
 ```typescript
-function useLocalStorage(key: string, initialValue: any) {
-  const [storedValue, setStoredValue] = useState(() => {
+function useLocalStorage<T>(key: string, initialValue: T) {
+  const [storedValue, setStoredValue] = useState<T>(() => {
     const item = window.localStorage.getItem(key);
     return item ? JSON.parse(item) : initialValue;
   });
-
-  const setValue = (value: any) => {
+  const setValue = (value: T) => {
     setStoredValue(value);
     window.localStorage.setItem(key, JSON.stringify(value));
   };
-
-  return [storedValue, setValue];
+  return [storedValue, setValue] as const;
 }
 ```
 
-### Context API
-```typescript
-const ThemeContext = createContext();
+## Commands
 
-function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light');
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
-```
-
-## Testing
-
+{{#if (hasItems structure.scripts)}}
 ```bash
-npm test                  # Run tests
-npm run test:watch        # Watch mode
-npm run test:coverage     # Coverage report
+{{#each structure.scripts}}
+npm run {{name}}{{#if command}}   # {{command}}{{/if}}
+{{/each}}
 ```
-
-## Common Commands
-
+{{else}}
 ```bash
-npm start                 # Start development server
-npm run build             # Build for production
-npm run lint              # Run ESLint
-npm run format            # Run Prettier
+npm start          # Development server
+npm run build      # Production build
+npm test           # Run tests
+npm run lint       # Lint
 ```
-
-## Popular Libraries
-
-- **Routing**: React Router
-- **State Management**: Redux, Zustand, Jotai, Recoil
-- **Forms**: React Hook Form, Formik
-- **UI**: Material-UI, Chakra UI, Ant Design
-- **Styling**: Tailwind CSS, styled-components, CSS Modules
+{{/if}}

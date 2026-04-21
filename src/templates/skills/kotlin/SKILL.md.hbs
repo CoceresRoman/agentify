@@ -1,3 +1,8 @@
+---
+name: {{stackName}}
+description: Best practices, patterns and commands for {{stackName}} development
+---
+
 # Kotlin Development Skill
 
 ## Detected Configuration
@@ -8,6 +13,15 @@
 - {{this}}
 {{/each}}
 
+{{#if (hasItems structure.srcDirs)}}
+## Project Structure
+
+```
+{{#each structure.srcDirs}}
+{{this}}
+{{/each}}
+```
+{{else}}
 ## Project Structure
 
 ```
@@ -25,6 +39,7 @@ src/
 └── test/
     └── kotlin/com/example/
 ```
+{{/if}}
 
 ## Best Practices
 

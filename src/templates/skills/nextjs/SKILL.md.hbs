@@ -1,9 +1,11 @@
-# Next.js Development Skill
+---
+name: {{stackName}}
+description: Best practices, patterns and commands for {{stackName}} development
+---
 
-## Overview
-This skill provides context and best practices for working with Next.js applications.
+# Next.js Skill
 
-## Detected Configuration
+## Configuration
 {{#if version}}
 - Version: {{version}}
 {{/if}}
@@ -12,9 +14,34 @@ This skill provides context and best practices for working with Next.js applicat
 {{else}}
 - Pages Router: Yes
 {{/if}}
+{{#if structure.hasTypeScript}}
+- TypeScript: enabled
+{{/if}}
 {{#each evidence}}
 - {{this}}
 {{/each}}
+
+{{#if (hasItems structure.srcDirs)}}
+## Project Structure
+
+```
+{{#each structure.srcDirs}}
+{{this}}
+{{/each}}
+```
+{{/if}}
+
+{{#if structure.testDir}}
+Tests located in: `{{structure.testDir}}/`
+{{/if}}
+
+{{#if (hasItems structure.configFiles)}}
+## Detected Config Files
+
+{{#each structure.configFiles}}
+- `{{this}}`
+{{/each}}
+{{/if}}
 
 ## Best Practices
 
@@ -93,14 +120,22 @@ npm run test:watch        # Watch mode
 npm run test:e2e          # E2E tests with Playwright/Cypress
 ```
 
-## Common Commands
+## Commands
 
+{{#if (hasItems structure.scripts)}}
 ```bash
-npm run dev          # Start development server (port 3000)
-npm run build        # Build for production
+{{#each structure.scripts}}
+npm run {{name}}{{#if command}}   # {{command}}{{/if}}
+{{/each}}
+```
+{{else}}
+```bash
+npm run dev          # Development server (port 3000)
+npm run build        # Production build
 npm run start        # Start production server
 npm run lint         # Run ESLint
 ```
+{{/if}}
 
 ## Data Fetching
 

@@ -1,15 +1,52 @@
-# NestJS Development Skill
+---
+name: {{stackName}}
+description: Best practices, patterns and commands for {{stackName}} development
+---
 
-## Overview
-This skill provides context and best practices for working with NestJS applications.
+# NestJS Skill
 
-## Detected Configuration
+## Configuration
 {{#if version}}
 - Version: {{version}}
+{{/if}}
+{{#if structure.hasTypeScript}}
+- TypeScript: enabled
 {{/if}}
 {{#each evidence}}
 - {{this}}
 {{/each}}
+
+{{#if (hasItems structure.srcDirs)}}
+## Project Structure
+
+```
+{{#each structure.srcDirs}}
+{{this}}
+{{/each}}
+```
+{{else}}
+## Project Structure
+
+```
+src/
+├── modules/       # Feature modules
+├── common/        # Shared utilities, guards, interceptors
+├── config/        # Configuration
+└── main.ts
+```
+{{/if}}
+
+{{#if structure.testDir}}
+Tests located in: `{{structure.testDir}}/`
+{{/if}}
+
+{{#if (hasItems structure.configFiles)}}
+## Detected Config Files
+
+{{#each structure.configFiles}}
+- `{{this}}`
+{{/each}}
+{{/if}}
 
 ## Best Practices
 
@@ -20,13 +57,6 @@ This skill provides context and best practices for working with NestJS applicati
 5. **Interceptors**: Handle cross-cutting concerns
 
 ## Common Patterns
-
-### Creating a Module
-```bash
-nest generate module users
-nest generate controller users
-nest generate service users
-```
 
 ### Dependency Injection
 ```typescript
@@ -52,23 +82,26 @@ export class CreateUserDto {
 }
 ```
 
-## Testing
+## Commands
 
-Run tests with:
+{{#if (hasItems structure.scripts)}}
 ```bash
-npm run test              # Unit tests
-npm run test:watch        # Watch mode
-npm run test:cov          # Coverage
-npm run test:e2e          # E2E tests
+{{#each structure.scripts}}
+npm run {{name}}{{#if command}}   # {{command}}{{/if}}
+{{/each}}
 ```
-
-## Common Commands
+{{else}}
+```bash
+npm run start:dev    # Development with watch mode
+npm run build        # Build for production
+npm run test         # Unit tests
+npm run test:e2e     # End-to-end tests
+npm run test:cov     # Coverage report
+```
+{{/if}}
 
 ```bash
-nest new project-name          # Create new project
-nest generate module users     # Generate module
-nest generate controller users # Generate controller
-nest generate service users    # Generate service
-nest build                     # Build project
-nest start --watch            # Start in watch mode
+nest generate module <name>      # Generate module
+nest generate controller <name>  # Generate controller
+nest generate service <name>     # Generate service
 ```
