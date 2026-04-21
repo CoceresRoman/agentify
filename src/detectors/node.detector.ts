@@ -57,8 +57,7 @@ export const detect: DetectorFunction = async (projectRoot: string) => {
 
   if (results.length === 0) return null;
 
-  results.sort((a, b) => b.confidence - a.confidence);
-  return results[0];
+  return results;
 };
 
 function detectNestJS(

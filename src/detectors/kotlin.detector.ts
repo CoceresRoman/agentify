@@ -13,7 +13,7 @@ export const detect: DetectorFunction = async (
 
   if (await fileExists(gradleKtsPath)) {
     evidence.push('Found build.gradle.kts (Kotlin DSL)');
-    confidence += 0.5;
+    confidence += 0.7;
   }
 
   if (await fileExists(settingsKtsPath)) {

@@ -28,5 +28,7 @@ export async function runAllDetectors(
     detectors.map((detector) => detector(projectRoot))
   );
 
-  return results.filter((r): r is DetectionResult => r !== null);
+  return results
+    .filter((r) => r !== null)
+    .flat() as DetectionResult[];
 }

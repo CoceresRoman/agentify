@@ -7,4 +7,4 @@ export type DetectionResult = {
 
 export type DetectorFunction = (
   projectRoot: string
-) => Promise<DetectionResult | null>;
+) => Promise<DetectionResult | DetectionResult[] | null>;
