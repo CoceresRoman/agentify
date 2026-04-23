@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { initCommand } from './commands/init.js';
+import { addCommand } from './commands/add.js';
+import { skillsListCommand } from './commands/skills.js';
+import { searchCommand } from './commands/search.js';
+import { helpCommand } from './commands/help.js';
 import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -36,12 +40,33 @@ async function main() {
     .action(initCommand);
 
   program
-    .command('add <skill>')
-    .description('Add a community skill to your project')
-    .action((skill: string) => {
-      console.log(`Command 'add ${skill}' is not yet implemented.`);
-      process.exit(1);
-    });
+    .command('add [skill]')
+    .description('Add a community skill from anthropics/skills registry')
+    .option(
+      '-o, --output <path>',
+      'Custom output directory (default: .claude)',
+      '.claude'
+    )
+    .action(addCommand);
+
+  const skillsCmd = program
+    .command('skills')
+    .description('Manage community skills');
+
+  skillsCmd
+    .command('list')
+    .description('List available skills from anthropics/skills registry')
+    .action(skillsListCommand);
+
+  program
+    .command('search <query>')
+    .description('Search community skills on GitHub (topic:claude-skill)')
+    .action(searchCommand);
+
+  program
+    .command('help', { isDefault: false })
+    .description('Show all commands with usage and description')
+    .action(helpCommand);
 
   await program.parseAsync(process.argv);
 }
