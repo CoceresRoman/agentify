@@ -19,27 +19,46 @@ export async function skillsListCommand() {
   const termWidth = process.stdout.columns || 120;
   const maxNameLen = Math.max(...skills.map((s) => s.name.length));
   const nameColWidth = maxNameLen + 2;
-  const descColWidth = termWidth - nameColWidth - 7; // borders + padding
+  const descColWidth = termWidth - nameColWidth - 7;
 
-  const border = chalk.gray('─');
-  const topLine = chalk.gray('┌' + border.repeat(nameColWidth + 2) + '┬' + border.repeat(descColWidth + 2) + '┐');
-  const midLine = chalk.gray('├' + border.repeat(nameColWidth + 2) + '┼' + border.repeat(descColWidth + 2) + '┤');
-  const botLine = chalk.gray('└' + border.repeat(nameColWidth + 2) + '┴' + border.repeat(descColWidth + 2) + '┘');
+  const wordWrap = (text: string, width: number): string[] => {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let current = '';
+    for (const word of words) {
+      if ((current ? current + ' ' + word : word).length <= width) {
+        current = current ? current + ' ' + word : word;
+      } else {
+        if (current) lines.push(current);
+        current = word.length > width ? word.slice(0, width) : word;
+      }
+    }
+    if (current) lines.push(current);
+    return lines;
+  };
+
   const sep = chalk.gray('│');
+  const b = '─';
+  const topLine = chalk.gray('┌' + b.repeat(nameColWidth + 2) + '┬' + b.repeat(descColWidth + 2) + '┐');
+  const midLine = chalk.gray('├' + b.repeat(nameColWidth + 2) + '┼' + b.repeat(descColWidth + 2) + '┤');
+  const botLine = chalk.gray('└' + b.repeat(nameColWidth + 2) + '┴' + b.repeat(descColWidth + 2) + '┘');
 
-  const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max - 1) + '…' : s;
-  const row = (name: string, desc: string, colored = false) => {
+  const printRow = (name: string, desc: string, colored = false) => {
+    const lines = wordWrap(desc, descColWidth);
     const n = colored ? chalk.cyan(name.padEnd(nameColWidth)) : chalk.bold(name.padEnd(nameColWidth));
-    const d = truncate(desc, descColWidth).padEnd(descColWidth);
-    return `${sep} ${n} ${sep} ${d} ${sep}`;
+    console.log(`${sep} ${n} ${sep} ${lines[0].padEnd(descColWidth)} ${sep}`);
+    for (let i = 1; i < lines.length; i++) {
+      console.log(`${sep} ${' '.repeat(nameColWidth)} ${sep} ${lines[i].padEnd(descColWidth)} ${sep}`);
+    }
   };
 
   console.log(`\n${chalk.bold('Available skills from anthropics/skills:')}\n`);
   console.log(topLine);
-  console.log(row('Name', 'Description'));
+  printRow('Name', 'Description');
   console.log(midLine);
-  for (const skill of skills) {
-    console.log(row(skill.name, skill.description, true));
+  for (let i = 0; i < skills.length; i++) {
+    printRow(skills[i].name, skills[i].description, true);
+    if (i < skills.length - 1) console.log(midLine);
   }
   console.log(botLine);
 
